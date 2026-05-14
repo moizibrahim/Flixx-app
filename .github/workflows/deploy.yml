@@ -1,0 +1,29 @@
+name: Deploy to OpenShift
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install oc
+        run: |
+          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+          tar -xvf openshift-client-linux.tar.gz
+          sudo mv oc /usr/local/bin/
+
+      - name: Login to OpenShift
+        run: |
+          oc login https://api.rm3.7wse.p1.openshiftapps.com:6443 \
+            --token=${{ secrets.OPENSHIFT_TOKEN }} \
+            --insecure-skip-tls-verify=true
+
+      - name: Trigger builds
+        run: |
+          oc start-build flixx-frontend -n ibmz05-dev
+          oc start-build flixx-movies -n ibmz05-dev
+          oc start-build flixx-shows -n ibmz05-dev
+          oc start-build flixx-search -n ibmz05-dev
